@@ -1,2 +1,2 @@
-# bank-connect-python-sdk
-A Python SDK to get up and running with Finbox Bank Connect.
+# bank-connect-python (Work in Progress)
+Python library to use Finbox Bank Connect.
