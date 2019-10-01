@@ -1,2 +1,2 @@
-# bank-connect-python (Work in Progress)
+# FinBox Bank Connect Python Library (Work in Progress)
 Python library to use Finbox Bank Connect.
