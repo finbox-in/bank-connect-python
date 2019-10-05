@@ -1,16 +1,25 @@
-from utils import is_valid_uuid4, check_progress
+from finbox_bankconnect.utils import is_valid_uuid4
 from collections import defaultdict
 import time
-from custom_exceptions import *
+import finbox_bankconnect.connector as connector
+from finbox_bankconnect.custom_exceptions import ExtractionFailedError, EntityNotFoundError, ServiceTimeOutError
+import finbox_bankconnect
 
 class Entity:
     def __init__(self, source=None, entity_id=None, link_id=None):
-        if source is None or not isinstance(source, int):
+        if source is None or not isinstance(source, str):
             raise ValueError("must create entity using get or create methods of Entity class")
 
         # basic identifiers
         self.__entity_id = entity_id
         self.__link_id = link_id
+
+        # lists to keep track of accounts and fraud info
+        self.__accounts = []
+        self.__fraud_info = []
+
+        # dictionary to keep track of identity info
+        self.__identity = dict()
 
         # lists to keep track of different transactions
         self.__transactions = []
@@ -18,9 +27,8 @@ class Entity:
         self.__debit_recurring = []
         self.__salary = []
 
-        # lazy loading trackers and polling lock
+        # lazy loading trackers
         self.__is_loaded = defaultdict(bool)
-        self.__poll_lock = False
 
         # set default lazy loading values based on instance creation source
         if source == 'c' and link_id is not None:
@@ -78,6 +86,8 @@ class Entity:
 
     def upload_statement(self, file_path, bank_name=None):
         """Uploads the statement for the given entity instance, creates entity if required too
+            if successfully uploaded, then returns a boolean indicating whether uploaded statement was
+            authentic
 
         arguments:
         file_path -- path of the pdf file
@@ -102,36 +112,152 @@ class Entity:
                 self.__entity_id = connector.create_entity(self.__link_id)
                 self.__is_loaded['entity_id'] = True
 
-            success, response = connector.upload_file(self.__entity_id, file_obj, bank_name)
-
+            success, is_authentic, entity_id, identity = connector.upload_file(self.__entity_id, file_obj, bank_name)
             if success:
                 if not self.__is_loaded['entity_id']:
-                    self.__entity_id = response['entity_id']
+                    self.__entity_id = entity_id
                     self.__is_loaded['entity_id'] = True
 
+                self.__is_loaded['identity'] = identity
+                self.__identity = identity
+
+        return is_authentic
+
     def get_transactions(self, reload=False):
+        """Fetches and returns the iterator to transactions (list of dictionary) for the given entity
+
+        arguments:
+        reload (optional) (default: False) -- do not use cached data and refetch from API
+        """
         if not self.__is_loaded['entity_id']:
             raise ValueError("no statement uploaded yet so use upload_statement method to set the entity_id")
 
         if reload or not self.__is_loaded['transactions']:
-            if not self.__poll_lock: # lock is free
-                self.__poll_lock = True # acquire lock
+            timer_start = time.time()
+            while time.time() < timer_start + finbox_bankconnect.poll_timeout: # keep polling till timeout happens
+                status, accounts, fraud_info, transactions = connector.get_transactions(self.__entity_id)
+                if status == "failed":
+                    raise ExtractionFailedError
+                elif status == "not_found":
+                    raise EntityNotFoundError
+                elif status == "completed":
+                    # save accounts
+                    self.__accounts = accounts
+                    self.__is_loaded['accounts'] = True
+                    # save fraud info
+                    self.__fraud_info = fraud_info
+                    self.__is_loaded['fraud_info'] = True
+                    # save transaction info
+                    self.__transactions = transactions
+                    self.__is_loaded['transactions'] = True
+                    break
+                time.sleep(finbox_bankconnect.poll_interval) # delay of finbox_bankconnect.poll_interval
 
-                timer_start = time.time()
-                while time.time() < timer_start + poll_timeout: # keep polling till timeout happens
-                    time.sleep(poll_interval) # delay of poll_interval
-                    response = connector.get_transactions(self.__entity_id)
-                    status = check_progress(response.get('progress', None))
-                    if status == "failed":
-                        self.__poll_lock = False
-                        raise ExtractionFailedError
-                    elif status == "not_found":
-                        self.__poll_lock = False
-                        raise EntityNotFoundError
-                    elif status == "completed":
-                        # save accounts, fraud and transaction info
+            if not self.__is_loaded['transactions']:
+                # if even after polling couldn't get transactions
+                raise ServiceTimeOutError
 
-                self.__poll_lock = False # release lock
+        return iter(self.__transactions)
 
+    def get_identity(self, reload=False):
+        """Fetches and returns the identity dictionary (one) for the given entity
 
-        return self.transactions
+        arguments:
+        reload (optional) (default: False) -- do not use cached data and refetch from API
+        account_id (optional) -- get identity dictionary for specific account_id
+        """
+        if not self.__is_loaded['entity_id']:
+            raise ValueError("no statement uploaded yet so use upload_statement method to set the entity_id")
+
+        if reload or not self.__is_loaded['identity']:
+            timer_start = time.time()
+            while time.time() < timer_start + finbox_bankconnect.poll_timeout: # keep polling till timeout happens
+                status, accounts, fraud_info, identity = connector.get_identity(self.__entity_id)
+                if status == "failed":
+                    raise ExtractionFailedError
+                elif status == "not_found":
+                    raise EntityNotFoundError
+                elif status == "completed":
+                    # save accounts
+                    self.__accounts = accounts
+                    self.__is_loaded['accounts'] = True
+                    # save fraud info
+                    self.__fraud_info = fraud_info
+                    self.__is_loaded['fraud_info'] = True
+                    # save identity info
+                    self.__identity = identity
+                    self.__is_loaded['identity'] = True
+                    break
+                time.sleep(finbox_bankconnect.poll_interval) # delay of finbox_bankconnect.poll_interval
+
+            if not self.__is_loaded['identity']:
+                # if even after polling couldn't get identity
+                raise ServiceTimeOutError
+
+        return self.__identity
+
+    def get_accounts(self, reload=False):
+        """Fetches and returns the iterator to accounts (list of dictionary) for the given entity
+
+        arguments:
+        reload (optional) (default: False) -- do not use cached data and refetch from API
+        """
+        if not self.__is_loaded['entity_id']:
+            raise ValueError("no statement uploaded yet so use upload_statement method to set the entity_id")
+
+        if reload or not self.__is_loaded['accounts']:
+            timer_start = time.time()
+            while time.time() < timer_start + finbox_bankconnect.poll_timeout: # keep polling till timeout happens
+                status, accounts, fraud_info = connector.get_accounts(self.__entity_id)
+                if status == "failed":
+                    raise ExtractionFailedError
+                elif status == "not_found":
+                    raise EntityNotFoundError
+                elif status == "completed":
+                    # save accounts
+                    self.__accounts = accounts
+                    self.__is_loaded['accounts'] = True
+                    # save fraud info
+                    self.__fraud_info = fraud_info
+                    self.__is_loaded['fraud_info'] = True
+                    break
+                time.sleep(finbox_bankconnect.poll_interval) # delay of finbox_bankconnect.poll_interval
+
+            if not self.__is_loaded['accounts']:
+                # if even after polling couldn't get accounts
+                raise ServiceTimeOutError
+
+        return iter(self.__accounts)
+
+    def get_fraud_info(self, reload=False):
+        """Fetches and returns the iterator to fraud info (list of dictionary) for the given entity
+
+        arguments:
+        reload (optional) (default: False) -- do not use cached data and refetch from API
+        """
+        if not self.__is_loaded['entity_id']:
+            raise ValueError("no statement uploaded yet so use upload_statement method to set the entity_id")
+
+        if reload or not self.__is_loaded['fraud_info']:
+            timer_start = time.time()
+            while time.time() < timer_start + finbox_bankconnect.poll_timeout: # keep polling till timeout happens
+                status, accounts, fraud_info = connector.get_accounts(self.__entity_id)
+                if status == "failed":
+                    raise ExtractionFailedError
+                elif status == "not_found":
+                    raise EntityNotFoundError
+                elif status == "completed":
+                    # save accounts
+                    self.__accounts = accounts
+                    self.__is_loaded['accounts'] = True
+                    # save fraud info
+                    self.__fraud_info = fraud_info
+                    self.__is_loaded['fraud_info'] = True
+                    break
+                time.sleep(finbox_bankconnect.poll_interval) # delay of finbox_bankconnect.poll_interval
+
+            if not self.__is_loaded['fraud_info']:
+                # if even after polling couldn't get fraud info
+                raise ServiceTimeOutError
+
+        return iter(self.__fraud_info)
