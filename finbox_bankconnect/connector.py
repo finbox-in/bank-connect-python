@@ -1,8 +1,8 @@
 import requests
 import finbox_bankconnect
-from custom_exceptions import ServiceTimeOutError, InvalidBankNameError
-from custom_exceptions import PasswordIncorrectError, UnparsablePDFError
-from custom_exceptions import FileProcessFailedError
+from finbox_bankconnect.custom_exceptions import ServiceTimeOutError, InvalidBankNameError
+from finbox_bankconnect.custom_exceptions import PasswordIncorrectError, UnparsablePDFError
+from finbox_bankconnect.custom_exceptions import FileProcessFailedError
 
 def get_progress_status(progress):
     for statement in progress:

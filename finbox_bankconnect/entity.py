@@ -1,6 +1,6 @@
-from finbox_bankconnect.utils import is_valid_uuid4
 from collections import defaultdict
 import time
+from finbox_bankconnect.utils import is_valid_uuid4
 import finbox_bankconnect.connector as connector
 from finbox_bankconnect.custom_exceptions import ExtractionFailedError, EntityNotFoundError, ServiceTimeOutError
 import finbox_bankconnect
