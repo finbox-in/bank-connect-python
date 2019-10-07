@@ -37,6 +37,7 @@ def get_link_id(entity_id):
     url = "{}/bank-connect/{}/entity/{}/".format(finbox_bankconnect.base_url, finbox_bankconnect.api_version, entity_id)
     headers = { 'x-api-key': finbox_bankconnect.api_key }
 
+    got_link_id = False
     link_id = None
     response = None
 
@@ -46,13 +47,14 @@ def get_link_id(entity_id):
         if response.status_code == 200:
             try:
                 link_id = response.json()['link_id']
+                got_link_id = True
                 break
             except KeyError:
                 pass
         elif response.status_code == 404:
             raise EntityNotFoundError
         retry_left -= 1
-    if link_id is None:
+    if not got_link_id:
         #TODO: Log here
         raise ServiceTimeOutError
     return link_id

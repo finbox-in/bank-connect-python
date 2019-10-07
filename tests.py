@@ -9,23 +9,23 @@ class TestUtilFunctions(unittest.TestCase):
     Test cases for utility functions
     """
 
-    def test_valid_uuid4(self):
-        self.assertEqual(test_valid_uuid4("c036e96d-ccae-443c-8f64-b98ceeaa1578"), True, "valid uuid4 detected as invalid")
+    def is_valid_uuid4(self):
+        self.assertEqual(is_valid_uuid4("c036e96d-ccae-443c-8f64-b98ceeaa1578"), True, "valid uuid4 detected as invalid")
 
     def test_uuid4_without_hyphen(self):
-        self.assertEqual(test_valid_uuid4("c036e96dccae443c8f64b98ceeaa1578"), False, "valid uuid4 without hyphen must be invalid")
+        self.assertEqual(is_valid_uuid4("c036e96dccae443c8f64b98ceeaa1578"), False, "valid uuid4 without hyphen must be invalid")
 
     def test_string_not_uuid4(self):
-        self.assertEqual(test_valid_uuid4("abc"), False, "invalid uuid4 string detected as valid")
+        self.assertEqual(is_valid_uuid4("abc"), False, "invalid uuid4 string detected as valid")
 
     def test_integer(self):
-        self.assertEqual(test_valid_uuid4(123), False, "integer detected as valid uui4")
+        self.assertEqual(is_valid_uuid4(123), False, "integer detected as valid uui4")
 
     def test_list(self):
-        self.assertEqual(test_valid_uuid4(["sadasd", "asdasd"]), False, "list detected as valid uui4")
+        self.assertEqual(is_valid_uuid4(["sadasd", "asdasd"]), False, "list detected as valid uui4")
 
     def test_none(self):
-        self.assertEqual(test_valid_uuid4(None), False, "list detected as valid uui4")
+        self.assertEqual(is_valid_uuid4(None), False, "list detected as valid uui4")
 
 class TestGetEntityEdgeCases(unittest.TestCase):
     """
