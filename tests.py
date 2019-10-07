@@ -2,8 +2,12 @@ import unittest
 import os
 import finbox_bankconnect as bc
 from finbox_bankconnect.custom_exceptions import EntityNotFoundError
+from finbox_bankconnect.utils import is_valid_uuid4
 
 class TestGetEntityEdgeCases(unittest.TestCase):
+    """
+    Test edge cases for Entity.get function
+    """
 
     def setUp(self):
         bc.api_key = os.environ['TEST_API_KEY']
@@ -12,19 +16,38 @@ class TestGetEntityEdgeCases(unittest.TestCase):
         exception_handled = False
         try:
             bc.Entity.get(entity_id = '')
+        except ValueError:
+            exception_handled = True
+        self.assertEqual(exception_handled, True, "entity_id blank string case - not handled")
+
+    def test_none_entity_id(self):
+        exception_handled = False
+        try:
             bc.Entity.get(entity_id = None)
         except ValueError:
             exception_handled = True
-        self.assertEqual(exception_handled, True, "entity_id None and blank string case - not handled")
+        self.assertEqual(exception_handled, True, "entity_id none case - not handled")
 
     def test_invalid_entity_id(self):
         exception_handled = False
         try:
-            bc.Entity.get(entity_id = '123123123safasd')
             bc.Entity.get(entity_id = 'c036e96dccae443c8f64b98ceeaa1578')
         except ValueError:
             exception_handled = True
         self.assertEqual(exception_handled, True, "entity_id not a valid uuid4 (with hyphen) case - not handled")
+
+    def test_non_string_entity_id(self):
+        list_handled = False
+        int_handled = False
+        try:
+            bc.Entity.get(entity_id = ["hello"])
+        except ValueError:
+            list_handled = True
+        try:
+            bc.Entity.get(entity_id = 123)
+        except ValueError:
+            int_handled = True
+        self.assertEqual(list_handled and int_handled, True, "entity_id non string case - not handled")
 
     def test_detail_not_found(self):
         exception_handled = False
@@ -36,8 +59,90 @@ class TestGetEntityEdgeCases(unittest.TestCase):
             exception_handled = True
         self.assertEqual(exception_handled, True, "entity_id valid but not in DB case - not handled")
 
+class TestLinkIdFlow(unittest.TestCase):
+    """
+    Test the flow by using the link_id
+    """
+
+    def setUp(self):
+        bc.api_key = os.environ['TEST_API_KEY']
+
+    def test_non_string_link_id(self):
+        list_handled = False
+        int_handled = False
+        try:
+            bc.Entity.create(link_id = ["hello"])
+        except ValueError:
+            list_handled = True
+        try:
+            bc.Entity.create(link_id = 123)
+        except ValueError:
+            int_handled = True
+        self.assertEqual(list_handled and int_handled, True, "link_id non string case - not handled")
+
+    def test_entity_creation(self):
+        entity = bc.Entity.create(link_id = "python_link_id_test")
+        entity_id = entity.entity_id
+        self.assertEqual(is_valid_uuid4(entity_id), True, "entity_id couldn't be created against the link_id")
+
+class TestIdentity(unittest.TestCase):
+    """
+    Test identity when using get_accounts function
+    """
+    def setUp(self):
+        bc.api_key = os.environ['TEST_API_KEY']
+        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        self.identity = entity.get_identity()
+
+    def check_name(self):
+        self.assertIn("name", self.identity, "name not present in identity")
+
+    def check_account_id(self):
+        self.assertIn("account_id", self.identity, "account_id not present in identity")
+
+    def check_account_number(self):
+        self.assertIn("account_number", self.identity, "account_number not present in identity")
+
+    def check_address(self):
+        self.assertIn("address", self.identity, "address not present in identity")
+
+class TestAccounts(unittest.TestCase):
+    """
+    Test accounts when using get_accounts function
+    """
+    def setUp(self):
+        bc.api_key = os.environ['TEST_API_KEY']
+        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        self.first_account = next(entity.get_accounts())
+
+    def check_months(self):
+        self.assertIn("months", self.first_account, "months not present in account")
+
+    def check_account_id(self):
+        self.assertIn("account_id", self.first_account, "account_id not present in account")
+
+    def check_account_number(self):
+        self.assertIn("account_number", self.first_account, "account_number not present in account")
+
+class TestFraudInfo(unittest.TestCase):
+    """
+    Test fraud info when using get_accounts function
+    """
+    def setUp(self):
+        bc.api_key = os.environ['TEST_API_KEY']
+        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        self.first_fraud = next(entity.get_fraud_info())
+
+    def check_fraud_type(self):
+        self.assertIn("fraud_type", self.first_fraud, "months not present in fraud")
+
+    def check_statement_id(self):
+        self.assertIn("statement_id", self.first_fraud, "statement_id not present in fraud")
 
 class TestFetchTransactions(unittest.TestCase):
+    """
+    Test transaction response when using get_transactions function
+    """
 
     def setUp(self):
         bc.api_key = os.environ['TEST_API_KEY']
