@@ -9,3 +9,19 @@ class EntityNotFoundError(Exception):
 class ServiceTimeOutError(Exception):
     def __init__(self):
         Exception.__init__(self, "Couldn't reach the service")
+
+class InvalidBankNameError(Exception):
+    def __init__(self):
+        Exception.__init__(self, "Please enter a valid bank name string")
+
+class PasswordIncorrectError(Exception):
+    def __init__(self):
+        Exception.__init__(self, "Incorrect password for the pdf file")
+
+class UnparsablePDFError(Exception):
+    def __init__(self):
+        Exception.__init__(self, "Given PDF either has only image or is not in a format that can be parsed")
+
+class FileProcessFailedError(Exception):
+    def __init__(self):
+        Exception.__init__(self, "Could not process document. If you think it was an error, contact Finbox.")
