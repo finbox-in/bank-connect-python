@@ -25,3 +25,7 @@ class UnparsablePDFError(Exception):
 class FileProcessFailedError(Exception):
     def __init__(self):
         Exception.__init__(self, "Could not process document. If you think it was an error, contact Finbox.")
+
+class CannotIdentityBankError(Exception):
+    def __init__(self):
+        Exception.__init__(self, "Cannot identify the bank from the document, try specifying the bank_name explicitly")

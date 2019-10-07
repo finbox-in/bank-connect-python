@@ -111,7 +111,7 @@ class Entity:
         if bank_name == "":
             bank_name = None
 
-        with open(file_path) as file_obj: #throws IOError if file is unaccessible or doesn't exists
+        with open(file_path, 'rb') as file_obj: #throws IOError if file is unaccessible or doesn't exists
 
             if self.__is_loaded['link_id'] and not self.__is_loaded['entity_id']:
                 # create an entity with the link_id and set it

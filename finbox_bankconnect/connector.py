@@ -3,6 +3,7 @@ import finbox_bankconnect
 from finbox_bankconnect.custom_exceptions import ServiceTimeOutError, InvalidBankNameError
 from finbox_bankconnect.custom_exceptions import PasswordIncorrectError, UnparsablePDFError
 from finbox_bankconnect.custom_exceptions import FileProcessFailedError, EntityNotFoundError
+from finbox_bankconnect.custom_exceptions import CannotIdentityBankError
 
 def get_progress_status(progress):
     for statement in progress:
@@ -60,7 +61,7 @@ def get_link_id(entity_id):
     return link_id
 
 def upload_file(entity_id, file_obj, pdf_password, bank_name):
-    api_name = 'upload_file'
+    api_name = 'upload'
     data = dict()
     if bank_name is None:
         api_name = 'bankless_upload'
@@ -71,7 +72,7 @@ def upload_file(entity_id, file_obj, pdf_password, bank_name):
     if pdf_password is not None:
         data['pdf_password'] = pdf_password
 
-    url = "{}/bank-connect/{}/statement/{}/?identity_true".format(finbox_bankconnect.base_url, finbox_bankconnect.api_version, api_name)
+    url = "{}/bank-connect/{}/statement/{}/?identity=true".format(finbox_bankconnect.base_url, finbox_bankconnect.api_version, api_name)
     headers = { 'x-api-key': finbox_bankconnect.api_key }
     files = { 'file': file_obj }
     response = None
@@ -95,10 +96,13 @@ def upload_file(entity_id, file_obj, pdf_password, bank_name):
                 raise InvalidBankNameError
             message = response.get('message')
             if message is not None:
+                #TODO: instead of string matching and message, add status code checks
                 if message == "Password incorrect":
                     raise PasswordIncorrectError
                 elif message == "PDF is not parsable":
                     raise UnparsablePDFError
+                elif message == "Unable to detect bank. Please provide BANK NAME.":
+                    raise CannotIdentityBankError
                 else:
                     raise FileProcessFailedError
         retry_left -= 1
