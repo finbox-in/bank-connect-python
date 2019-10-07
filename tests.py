@@ -7,7 +7,7 @@ class TestTransactions(unittest.TestCase):
     def setUp(self):
         bc.api_key = os.environ['TEST_API_KEY']
         entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
-        self.first_transaction = entity.get_transactions().next()
+        self.first_transaction = next(entity.get_transactions())
 
     def test_balance_exists(self):
         self.assertIn("balance", self.first_transaction)
