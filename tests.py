@@ -1,7 +1,8 @@
 import unittest
 import os
 import finbox_bankconnect as bc
-from finbox_bankconnect.custom_exceptions import EntityNotFoundError
+from finbox_bankconnect.custom_exceptions import EntityNotFoundError, PasswordIncorrectError
+from finbox_bankconnect.custom_exceptions import UnparsablePDFError, CannotIdentityBankError
 from finbox_bankconnect.utils import is_valid_uuid4
 
 class TestUtilFunctions(unittest.TestCase):
@@ -41,6 +42,8 @@ class TestGetEntityEdgeCases(unittest.TestCase):
             bc.Entity.get(entity_id = '')
         except ValueError:
             exception_handled = True
+        except Exception as e:
+            print(e)
         self.assertEqual(exception_handled, True, "entity_id blank string case - not handled")
 
     def test_none_entity_id(self):
@@ -49,6 +52,8 @@ class TestGetEntityEdgeCases(unittest.TestCase):
             bc.Entity.get(entity_id = None)
         except ValueError:
             exception_handled = True
+        except Exception as e:
+            print(e)
         self.assertEqual(exception_handled, True, "entity_id none case - not handled")
 
     def test_invalid_entity_id(self):
@@ -57,6 +62,8 @@ class TestGetEntityEdgeCases(unittest.TestCase):
             bc.Entity.get(entity_id = 'c036e96dccae443c8f64b98ceeaa1578')
         except ValueError:
             exception_handled = True
+        except Exception as e:
+            print(e)
         self.assertEqual(exception_handled, True, "entity_id not a valid uuid4 (with hyphen) case - not handled")
 
     def test_non_string_entity_id(self):
@@ -66,10 +73,14 @@ class TestGetEntityEdgeCases(unittest.TestCase):
             bc.Entity.get(entity_id = ["hello"])
         except ValueError:
             list_handled = True
+        except Exception as e:
+            print(e)
         try:
             bc.Entity.get(entity_id = 123)
         except ValueError:
             int_handled = True
+        except Exception as e:
+            print(e)
         self.assertEqual(list_handled and int_handled, True, "entity_id non string case - not handled")
 
     def test_detail_not_found(self):
@@ -80,6 +91,8 @@ class TestGetEntityEdgeCases(unittest.TestCase):
             # assuming this uuid id doesn't exists in DB :P
         except EntityNotFoundError:
             exception_handled = True
+        except Exception as e:
+            print(e)
         self.assertEqual(exception_handled, True, "entity_id valid but not in DB case - not handled")
 
 class TestLinkIdFlow(unittest.TestCase):
@@ -97,10 +110,14 @@ class TestLinkIdFlow(unittest.TestCase):
             bc.Entity.create(link_id = ["hello"])
         except ValueError:
             list_handled = True
+        except Exception as e:
+            print(e)
         try:
             bc.Entity.create(link_id = 123)
         except ValueError:
             int_handled = True
+        except Exception as e:
+            print(e)
         self.assertEqual(list_handled and int_handled, True, "link_id non string case - not handled")
 
     def test_entity_creation(self):
@@ -110,7 +127,7 @@ class TestLinkIdFlow(unittest.TestCase):
 
     def test_link_id_fetch(self):
         entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
-        self.assertEqual(entity.link_id, None, "link_id was incorrectly fetched")
+        self.assertEqual(entity.link_id, "test_client_library", "link_id was incorrectly fetched")
 
 class TestIdentity(unittest.TestCase):
     """
@@ -184,6 +201,47 @@ class TestFetchTransactions(unittest.TestCase):
 
     def test_date_exists(self):
         self.assertIn("date", self.first_transaction, "balance not present in transaction")
+
+class TestUploadStatement(unittest.TestCase):
+    """
+    Test uploading of statement pdf and then get transactions after that
+    """
+
+    def setUp(self):
+        bc.api_key = os.environ['TEST_API_KEY']
+
+    def test_password_incorrect_bank_name(self):
+        exception_handled = False
+        entity = bc.Entity.create()
+        try:
+            entity.upload_statement('samples/test_statement_2.pdf', pdf_password='wrongpass', bank_name='axis')
+        except PasswordIncorrectError:
+            exception_handled = True
+        except Exception as e:
+            print(e)
+        self.assertEqual(exception_handled, True, "Password incorrect error not handled")
+
+    def test_unparsable_pdf_bank_name(self):
+        exception_handled = False
+        entity = bc.Entity.create()
+        try:
+            entity.upload_statement('samples/test_statement_2.pdf', pdf_password='finbox', bank_name='axis')
+        except UnparsablePDFError:
+            exception_handled = True
+        except Exception as e:
+            print(e)
+        self.assertEqual(exception_handled, True, "Unparsable PDF error not handled")
+
+    def test_cannot_identify_bank(self):
+        exception_handled = False
+        entity = bc.Entity.create()
+        try:
+            entity.upload_statement('samples/test_statement_2.pdf', pdf_password='finbox')
+        except CannotIdentityBankError:
+            exception_handled = True
+        except Exception as e:
+            print(e)
+        self.assertEqual(exception_handled, True, "Cannot identify bank error not handled")
 
 if __name__ == '__main__':
     unittest.main()
