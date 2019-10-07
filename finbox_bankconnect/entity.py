@@ -45,6 +45,8 @@ class Entity:
         """
         if not entity_id:
             raise ValueError("entity_id cannot be blank or None")
+        if not isinstance(entity_id, str):
+            raise ValueError("entity_id must be a string")
         if not is_valid_uuid4(entity_id):
             raise ValueError("invalid entity_id")
         return Entity(source='g', entity_id=entity_id)
