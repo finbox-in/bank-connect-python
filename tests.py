@@ -16,7 +16,7 @@ class TestTransactions(unittest.TestCase):
         self.assertIn("transaction_type", self.first_transaction)
 
     def test_date_exists(self):
-        self.assertIn("data", self.first_transaction)
+        self.assertIn("date", self.first_transaction)
 
 if __name__ == '__main__':
     unittest.main()
