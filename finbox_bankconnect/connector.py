@@ -21,7 +21,7 @@ def create_entity(link_id):
     retry_left = finbox_bankconnect.max_retry_limit
     while retry_left:
         response = requests.post(url, headers=headers, data=data)
-        if response.status_code == 200:
+        if response.status_code == 201:
             try:
                 entity_id = response.json()['entity_id']
                 break
