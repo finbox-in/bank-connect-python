@@ -84,13 +84,14 @@ class Entity:
                 raise ValueError("no statement uploaded yet so use upload_statement method to set the link_id")
         return self.__link_id
 
-    def upload_statement(self, file_path, bank_name=None):
+    def upload_statement(self, file_path, pdf_password=None, bank_name=None):
         """Uploads the statement for the given entity instance, creates entity if required too
             if successfully uploaded, then returns a boolean indicating whether uploaded statement was
             authentic
 
         arguments:
         file_path -- path of the pdf file
+        pdf_password (optional) -- pdf password string
         bank_name (optional) -- bank name string
         """
         if not file_path:
@@ -99,6 +100,9 @@ class Entity:
             raise ValueError("file_path must be a string")
         if not file_path.lower().endswith('.pdf'):
             raise ValueError("file_path must be of a pdf file")
+
+        if pdf_password is not None and not isinstance(pdf_password, str):
+            raise ValueError("pdf_password must be a string or None")
 
         if bank_name and not isinstance(bank_name, str):
             raise ValueError("bank_name must be a string or None")
@@ -112,14 +116,13 @@ class Entity:
                 self.__entity_id = connector.create_entity(self.__link_id)
                 self.__is_loaded['entity_id'] = True
 
-            success, is_authentic, entity_id, identity = connector.upload_file(self.__entity_id, file_obj, bank_name)
-            if success:
-                if not self.__is_loaded['entity_id']:
-                    self.__entity_id = entity_id
-                    self.__is_loaded['entity_id'] = True
+            is_authentic, entity_id, identity = connector.upload_file(self.__entity_id, file_obj, pdf_password, bank_name)
+            if not self.__is_loaded['entity_id']:
+                self.__entity_id = entity_id
+                self.__is_loaded['entity_id'] = True
 
-                self.__is_loaded['identity'] = identity
-                self.__identity = identity
+            self.__is_loaded['identity'] = identity
+            self.__identity = identity
 
         return is_authentic
 
