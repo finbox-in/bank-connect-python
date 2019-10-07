@@ -3,7 +3,11 @@ python:
   - 3.4
   - 3.5
   - 3.6
+  - 3.7
 install:
   - pip install requests
+  - pip install python-coveralls
 script:
   - python tests.py
+after_success:
+  - coveralls
