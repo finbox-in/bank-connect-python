@@ -2,7 +2,7 @@ import requests
 import finbox_bankconnect
 from finbox_bankconnect.custom_exceptions import ServiceTimeOutError, InvalidBankNameError
 from finbox_bankconnect.custom_exceptions import PasswordIncorrectError, UnparsablePDFError
-from finbox_bankconnect.custom_exceptions import FileProcessFailedError
+from finbox_bankconnect.custom_exceptions import FileProcessFailedError, EntityNotFoundError
 
 def get_progress_status(progress):
     for statement in progress:
@@ -49,6 +49,8 @@ def get_link_id(entity_id):
                 break
             except KeyError:
                 pass
+        elif response.status_code == 404:
+            raise EntityNotFoundError
         retry_left -= 1
     if link_id is None:
         #TODO: Log here

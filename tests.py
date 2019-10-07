@@ -4,6 +4,29 @@ import finbox_bankconnect as bc
 from finbox_bankconnect.custom_exceptions import EntityNotFoundError
 from finbox_bankconnect.utils import is_valid_uuid4
 
+class TestUtilFunctions(unittest.TestCase):
+    """
+    Test cases for utility functions
+    """
+
+    def test_valid_uuid4(self):
+        self.assertEqual(test_valid_uuid4("c036e96d-ccae-443c-8f64-b98ceeaa1578"), True, "valid uuid4 detected as invalid")
+
+    def test_uuid4_without_hyphen(self):
+        self.assertEqual(test_valid_uuid4("c036e96dccae443c8f64b98ceeaa1578"), False, "valid uuid4 without hyphen must be invalid")
+
+    def test_string_not_uuid4(self):
+        self.assertEqual(test_valid_uuid4("abc"), False, "invalid uuid4 string detected as valid")
+
+    def test_integer(self):
+        self.assertEqual(test_valid_uuid4(123), False, "integer detected as valid uui4")
+
+    def test_list(self):
+        self.assertEqual(test_valid_uuid4(["sadasd", "asdasd"]), False, "list detected as valid uui4")
+
+    def test_none(self):
+        self.assertEqual(test_valid_uuid4(None), False, "list detected as valid uui4")
+
 class TestGetEntityEdgeCases(unittest.TestCase):
     """
     Test edge cases for Entity.get function
@@ -84,6 +107,10 @@ class TestLinkIdFlow(unittest.TestCase):
         entity = bc.Entity.create(link_id = "python_link_id_test")
         entity_id = entity.entity_id
         self.assertEqual(is_valid_uuid4(entity_id), True, "entity_id couldn't be created against the link_id")
+
+    def test_link_id_fetch(self):
+        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        self.assertEqual(entity.link_id, None, "link_id was incorrectly fetched")
 
 class TestIdentity(unittest.TestCase):
     """
