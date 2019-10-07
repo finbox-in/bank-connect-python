@@ -9,7 +9,7 @@ class TestUtilFunctions(unittest.TestCase):
     Test cases for utility functions
     """
 
-    def is_valid_uuid4(self):
+    def test_valid_uuid4(self):
         self.assertEqual(is_valid_uuid4("c036e96d-ccae-443c-8f64-b98ceeaa1578"), True, "valid uuid4 detected as invalid")
 
     def test_uuid4_without_hyphen(self):
@@ -121,16 +121,16 @@ class TestIdentity(unittest.TestCase):
         entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
         self.identity = entity.get_identity()
 
-    def check_name(self):
+    def test_name(self):
         self.assertIn("name", self.identity, "name not present in identity")
 
-    def check_account_id(self):
+    def test_account_id(self):
         self.assertIn("account_id", self.identity, "account_id not present in identity")
 
-    def check_account_number(self):
+    def test_account_number(self):
         self.assertIn("account_number", self.identity, "account_number not present in identity")
 
-    def check_address(self):
+    def test_address(self):
         self.assertIn("address", self.identity, "address not present in identity")
 
 class TestAccounts(unittest.TestCase):
@@ -142,13 +142,13 @@ class TestAccounts(unittest.TestCase):
         entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
         self.first_account = next(entity.get_accounts())
 
-    def check_months(self):
+    def test_months(self):
         self.assertIn("months", self.first_account, "months not present in account")
 
-    def check_account_id(self):
+    def test_account_id(self):
         self.assertIn("account_id", self.first_account, "account_id not present in account")
 
-    def check_account_number(self):
+    def test_account_number(self):
         self.assertIn("account_number", self.first_account, "account_number not present in account")
 
 class TestFraudInfo(unittest.TestCase):
@@ -160,10 +160,10 @@ class TestFraudInfo(unittest.TestCase):
         entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
         self.first_fraud = next(entity.get_fraud_info())
 
-    def check_fraud_type(self):
+    def test_fraud_type(self):
         self.assertIn("fraud_type", self.first_fraud, "months not present in fraud")
 
-    def check_statement_id(self):
+    def test_statement_id(self):
         self.assertIn("statement_id", self.first_fraud, "statement_id not present in fraud")
 
 class TestFetchTransactions(unittest.TestCase):
