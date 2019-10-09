@@ -1,6 +1,7 @@
 from collections import defaultdict
 import time
 from finbox_bankconnect.utils import is_valid_uuid4
+from finbox_bankconnect.filters import make_account_id_filter
 import finbox_bankconnect.connector as connector
 from finbox_bankconnect.custom_exceptions import ExtractionFailedError, EntityNotFoundError, ServiceTimeOutError
 import finbox_bankconnect
@@ -133,6 +134,7 @@ class Entity:
 
         arguments:
         reload (optional) (default: False) -- do not use cached data and refetch from API
+        account_id (optional) -- get identity dictionary for specific account_id
         """
         if not self.__is_loaded['entity_id']:
             raise ValueError("no statement uploaded yet so use upload_statement method to set the entity_id")
@@ -162,6 +164,10 @@ class Entity:
                 # if even after polling couldn't get transactions
                 raise ServiceTimeOutError
 
+        if account_id is not None:
+            account_id_filter = make_account_id_filter(account_id)
+            return filter(account_id_filter, self.__transactions)
+
         return iter(self.__transactions)
 
     def get_identity(self, reload=False):
@@ -169,7 +175,6 @@ class Entity:
 
         arguments:
         reload (optional) (default: False) -- do not use cached data and refetch from API
-        account_id (optional) -- get identity dictionary for specific account_id
         """
         if not self.__is_loaded['entity_id']:
             raise ValueError("no statement uploaded yet so use upload_statement method to set the entity_id")

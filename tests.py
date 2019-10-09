@@ -2,7 +2,10 @@
 To run the test cases below make sure you have following environemnt variables set:
 
 TEST_API_KEY -- API Key for your organization
+TEST_LINK_ID -- any link_id string
 TEST_ENTITY_ID -- any entity id which you have created before using any of our APIs / libraries before under the above organization
+                  with link_id as above (TEST_LINK_ID)
+TEST_ACCOUNT_ID -- an account id of the above TEST_ENTITY_ID entity having some transactions
 
 """
 
@@ -169,7 +172,7 @@ class TestLinkIdFlow(unittest.TestCase):
 
     def test_link_id_fetch(self):
         entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
-        self.assertEqual(entity.link_id, "test_client_library", "link_id was incorrectly fetched")
+        self.assertEqual(entity.link_id, os.environ['TEST_LINK_ID'], "link_id was incorrectly fetched")
 
 class TestIdentity(unittest.TestCase):
     """
@@ -244,9 +247,28 @@ class TestFetchTransactions(unittest.TestCase):
     def test_date_exists(self):
         self.assertIn("date", self.first_transaction, "balance not present in transaction")
 
+class TestAccountFilteredTransactions(unittest.TestCase):
+    """
+    Test transaction response when using get_transactions function with account_id filter
+    """
+
+    def setUp(self):
+        bc.api_key = os.environ['TEST_API_KEY']
+        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        self.first_transaction = next(entity.get_transactions(account_id = os.environ['TEST_ACCOUNT_ID']))
+
+    def test_balance_exists(self):
+        self.assertIn("balance", self.first_transaction, "balance not present in transaction")
+
+    def test_transaction_type_exists(self):
+        self.assertIn("transaction_type", self.first_transaction, "balance not present in transaction")
+
+    def test_date_exists(self):
+        self.assertIn("date", self.first_transaction, "balance not present in transaction")
+
 class TestUploadStatement(unittest.TestCase):
     """
-    Test uploading of statement pdf and then get transactions after that
+    Test uploading of statement pdf with edge cases
     """
 
     def setUp(self):
