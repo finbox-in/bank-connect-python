@@ -289,6 +289,49 @@ class TestAccountFilteredTransactions(unittest.TestCase):
     def test_date_exists(self):
         self.assertIn("date", self.first_transaction, "balance not present in transaction")
 
+class TestDateRangeEdgeCases(unittest.TestCase):
+    """
+    Test edge cases for invalid date ranges
+    """
+
+    def setUp(self):
+        bc.api_key = os.environ['TEST_API_KEY']
+        self.entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+
+    def test_invalid_daterange(self):
+        string_handled = False
+        try:
+            next(self.entity.get_transactions(from_date="2019-10-04 00:00:00", to_date="2019-10-31 00:00:00"))
+        except ValueError:
+            string_handled = True
+        datetime_handled = False
+        try:
+            next(self.entity.get_transactions(from_date=datetime.datetime.today(), to_date=datetime.datetime.now()))
+        except ValueError:
+            datetime_handled = True
+        self.assertEqual(string_handled and datetime_handled, True,
+            "datetime with/without tzinfo cases not handled for get_transactions with from_date and to_date")
+
+class TestDateRangeFilteredTransactions(unittest.TestCase):
+    """
+    Test transaction response when using get_transactions function with from_date and to_date filter
+    """
+
+    def setUp(self):
+        bc.api_key = os.environ['TEST_API_KEY']
+        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        from_date = (datetime.datetime.today() - datetime.timedelta(days=1000)).date()
+        self.first_transaction = next(entity.get_transactions(from_date=from_date, to_date=datetime.datetime.today().date()))
+
+    def test_balance_exists(self):
+        self.assertIn("balance", self.first_transaction, "balance not present in transaction")
+
+    def test_transaction_type_exists(self):
+        self.assertIn("transaction_type", self.first_transaction, "balance not present in transaction")
+
+    def test_date_exists(self):
+        self.assertIn("date", self.first_transaction, "balance not present in transaction")
+
 class TestUploadStatement(unittest.TestCase):
     """
     Test uploading of statement pdf with edge cases

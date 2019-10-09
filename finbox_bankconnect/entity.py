@@ -1,7 +1,8 @@
 from collections import defaultdict
 import time
+import datetime
 from finbox_bankconnect.utils import is_valid_uuid4
-from finbox_bankconnect.filters import make_account_id_filter
+from finbox_bankconnect.filters import make_account_id_filter, make_daterange_filter
 import finbox_bankconnect.connector as connector
 from finbox_bankconnect.custom_exceptions import ExtractionFailedError, EntityNotFoundError, ServiceTimeOutError
 import finbox_bankconnect
@@ -129,19 +130,28 @@ class Entity:
 
         return is_authentic
 
-    def get_transactions(self, reload=False, account_id=None):
+    def get_transactions(self, reload=False, account_id=None, from_date=None, to_date=None):
         """Fetches and returns the iterator to transactions (list of dictionary) for the given entity
 
         arguments:
         reload (optional) (default: False) -- do not use cached data and refetch from API
-        account_id (optional) -- get identity dictionary for specific account_id
+        account_id (optional) -- get transactions for specific account_id
+        from_date (optional) -- get transactions greater than from_date (must be datetime.date)
+        to_date (optional) -- get transactions less than to_date (must be datetime.date)
         """
         if not self.__is_loaded['entity_id']:
             raise ValueError("no statement uploaded yet so use upload_statement method to set the entity_id")
 
         if account_id is not None:
             if not is_valid_uuid4(account_id):
-                raise ValueError("account_id must be a valid UUID4 string")
+                raise ValueError("account_id if provided must be a valid UUID4 string")
+
+        if from_date is not None:
+            if not isinstance(from_date, datetime.date):
+                raise ValueError("from_date if provided must be a python datetime.date object")
+        if to_date is not None:
+            if not isinstance(to_date, datetime.date):
+                raise ValueError("to_date if provided must be a python datetime.date object")
 
         if reload or not self.__is_loaded['transactions']:
             timer_start = time.time()
@@ -171,6 +181,10 @@ class Entity:
         if account_id is not None:
             account_id_filter = make_account_id_filter(account_id)
             return filter(account_id_filter, self.__transactions)
+
+        if from_date is not None or to_date is not None:
+            daterange_filter = make_daterange_filter(from_date, to_date)
+            return filter(daterange_filter, self.__transactions)
 
         return iter(self.__transactions)
 
