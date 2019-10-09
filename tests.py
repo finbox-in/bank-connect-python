@@ -254,17 +254,17 @@ class TestAccountEdgeCases(unittest.TestCase):
 
     def setUp(self):
         bc.api_key = os.environ['TEST_API_KEY']
-        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        self.entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
 
     def test_invalid_account_id(self):
         array_handled = False
         invalid_uuid4_handled = False
         try:
-            next(entity.get_transactions(account_id=['hello']))
+            next(self.entity.get_transactions(account_id=['hello']))
         except ValueError:
             array_handled = True
         try:
-            next(entity.get_transactions("somelongstringispresenthere"))
+            next(self.entity.get_transactions("somelongstringispresenthere"))
         except ValueError:
             invalid_uuid4_handled = True
         self.assertEqual(array_handled and invalid_uuid4_handled, True,
