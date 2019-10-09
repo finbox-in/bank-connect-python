@@ -11,6 +11,7 @@ TEST_ACCOUNT_ID -- an account id of the above TEST_ENTITY_ID entity having some 
 
 import unittest
 import os
+import datetime
 import finbox_bankconnect as bc
 from finbox_bankconnect.custom_exceptions import EntityNotFoundError, PasswordIncorrectError
 from finbox_bankconnect.custom_exceptions import UnparsablePDFError, CannotIdentityBankError
