@@ -264,7 +264,7 @@ class TestAccountEdgeCases(unittest.TestCase):
         except ValueError:
             array_handled = True
         try:
-            next(self.entity.get_transactions("somelongstringispresenthere"))
+            next(self.entity.get_transactions(account_id="somelongstringispresenthere"))
         except ValueError:
             invalid_uuid4_handled = True
         self.assertEqual(array_handled and invalid_uuid4_handled, True,
