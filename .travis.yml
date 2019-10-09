@@ -11,10 +11,5 @@ script:
 - coverage run --source=finbox_bankconnect tests.py
 after_success:
 - coveralls
-deploy:
-  provider: pypi
-  user: shouryaps
-  password:
-    secure: hDHQwS38icOfdX80WKFl9hbq2kfJ224/zMCLRZn+jtOxi0h/eTdvtvIGijmr1ocqzzxmH5FroaMgtFm7n60QR0mSkhQDD5IoeyAuAtWc4rV18qseaSmW9MPSPIiT3D6fuNVM0sS8AoYULwa1gfViF2w+4Dp0PWTyQbcvl8rEZQV9/d4GVyTw3KzKLuIo1s/Mxr5tm+4NdBVpC42IY5O/iZNPNSvhzBheok7jtiAHMp4cZfCC5grM/WxL1L9+IyrYFtVOnkRmW+BhCn/5hVQm6dNohfQcBd81Ph1INx6ACk0n5hE0Ln1nP5TLoAVHFvT4FuvW84EERXwWbz0JQnqCHEFUWkKjKld+vf9UTbdZWAJAtgR3Uv8iUa1NpJscbeCkmvxloLhRYxgdUZSACKd/bcxNSfq7QhD83Fr5LfcD5NVmzy/hvn+btHEU2CP8l6BYjTIP18LlWWDmBuuvgUHcBZAryrW78Urzbv+bp5Fg2kdBwEAAuV31bpBeZgMp1LXkVureL3xm9+UqCi3DqkSm8UdoaoeW6qgcaBob7SL06gD9mYNk4paHyTYoOeXbMIfsyJ2QfYT1xrLdqcuLcNCp5jnd5iIcYpsLprTdbBRq6Q5sg7PLm4S9GimvBdAeTaN/dVWaBMlXoR4ZRcRYl3k6Mv09poZwDArBYTjKB5+ZPhw=
-  on:
-    python: 3.4
+- gem install dpl
+- dpl pypi --username __token__ --password $PYPI_TOKEN --verbose
