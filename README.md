@@ -1,6 +1,16 @@
-# FinBox BankConnect Python Library (Work in Progress)
+# FinBox BankConnect Python Library
 
 [![Build Status](https://travis-ci.org/finbox-in/bank-connect-python.svg?branch=master)](https://travis-ci.org/finbox-in/bank-connect-python)
 [![Coverage Status](https://coveralls.io/repos/github/finbox-in/bank-connect-python/badge.svg?branch=master)](https://coveralls.io/github/finbox-in/bank-connect-python?branch=master)
 
-Python library to use Finbox Bank Connect.
+Python library to use Finbox Bank Connect
+
+## Installation
+You don't need this source code unless you want to modify the package. If you just want to use the package, just run:
+
+```sh
+pip install finbox_bankconnect
+```
+
+## Requirements
+Python 3.4+
