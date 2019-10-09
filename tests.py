@@ -247,6 +247,29 @@ class TestFetchTransactions(unittest.TestCase):
     def test_date_exists(self):
         self.assertIn("date", self.first_transaction, "balance not present in transaction")
 
+class TestAccountEdgeCases(unittest.TestCase):
+    """
+    Test edge cases for invalid account_id
+    """
+
+    def setUp(self):
+        bc.api_key = os.environ['TEST_API_KEY']
+        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+
+    def test_invalid_account_id(self):
+        array_handled = False
+        invalid_uuid4_handled = False
+        try:
+            next(entity.get_transactions(account_id=['hello']))
+        except ValueError:
+            array_handled = True
+        try:
+            next(entity.get_transactions("somelongstringispresenthere"))
+        except ValueError:
+            invalid_uuid4_handled = True
+        self.assertEqual(array_handled and invalid_uuid4_handled, True,
+            "array and invalid uuid4 string cases not handled for get_transactions with account_id")
+
 class TestAccountFilteredTransactions(unittest.TestCase):
     """
     Test transaction response when using get_transactions function with account_id filter

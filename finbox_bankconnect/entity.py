@@ -129,7 +129,7 @@ class Entity:
 
         return is_authentic
 
-    def get_transactions(self, reload=False):
+    def get_transactions(self, reload=False, account_id=None):
         """Fetches and returns the iterator to transactions (list of dictionary) for the given entity
 
         arguments:
@@ -138,6 +138,10 @@ class Entity:
         """
         if not self.__is_loaded['entity_id']:
             raise ValueError("no statement uploaded yet so use upload_statement method to set the entity_id")
+
+        if account_id is not None:
+            if not is_valid_uuid4(account_id):
+                raise ValueError("account_id must be a valid UUID4 string")
 
         if reload or not self.__is_loaded['transactions']:
             timer_start = time.time()
