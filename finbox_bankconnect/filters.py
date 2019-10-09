@@ -17,6 +17,6 @@ def make_daterange_filter(from_date, to_date):
         if from_date is not None:
             check_from = from_date <= curr_date
         if to_date is not None:
-            check_to = curr_date <= check_to
+            check_to = curr_date <= to_date
         return check_from and check_to
     return daterange_filter

@@ -136,8 +136,8 @@ class Entity:
         arguments:
         reload (optional) (default: False) -- do not use cached data and refetch from API
         account_id (optional) -- get transactions for specific account_id
-        from_date (optional) -- get transactions greater than from_date (must be datetime.date)
-        to_date (optional) -- get transactions less than to_date (must be datetime.date)
+        from_date (optional) -- get transactions greater than or equal to from_date (must be datetime.date)
+        to_date (optional) -- get transactions less than or equal to to_date (must be datetime.date)
         """
         if not self.__is_loaded['entity_id']:
             raise ValueError("no statement uploaded yet so use upload_statement method to set the entity_id")
