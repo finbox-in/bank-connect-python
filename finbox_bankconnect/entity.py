@@ -9,7 +9,7 @@ import finbox_bankconnect
 
 class Entity:
     def __init__(self, source=None, entity_id=None, link_id=None):
-        if source is None or not isinstance(source, str):
+        if source is None or not type(source) == str:
             raise ValueError("must create entity using get or create methods of Entity class")
 
         # basic identifiers
@@ -47,7 +47,7 @@ class Entity:
         """
         if not entity_id:
             raise ValueError("entity_id cannot be blank or None")
-        if not isinstance(entity_id, str):
+        if not type(entity_id) == str:
             raise ValueError("entity_id must be a string")
         if not is_valid_uuid4(entity_id):
             raise ValueError("invalid entity_id")
@@ -60,7 +60,7 @@ class Entity:
         arguments:
         link_id (optional) -- the link_id string
         """
-        if link_id and not isinstance(link_id, str):
+        if link_id and not type(link_id) == str:
             raise ValueError("link_id must be a string")
         return Entity(source='c', link_id=link_id)
 
@@ -100,15 +100,15 @@ class Entity:
         """
         if not file_path:
             raise ValueError("file_path cannot be blank or None")
-        if not isinstance(file_path, str):
+        if not type(file_path) == str:
             raise ValueError("file_path must be a string")
         if not file_path.lower().endswith('.pdf'):
             raise ValueError("file_path must be of a pdf file")
 
-        if pdf_password is not None and not isinstance(pdf_password, str):
+        if pdf_password is not None and not type(pdf_password) == str:
             raise ValueError("pdf_password must be a string or None")
 
-        if bank_name and not isinstance(bank_name, str):
+        if bank_name and not type(bank_name) == str:
             raise ValueError("bank_name must be a string or None")
         if bank_name == "":
             bank_name = None
@@ -147,10 +147,10 @@ class Entity:
                 raise ValueError("account_id if provided must be a valid UUID4 string")
 
         if from_date is not None:
-            if not isinstance(from_date, datetime.date):
+            if not type(from_date) == datetime.date:
                 raise ValueError("from_date if provided must be a python datetime.date object")
         if to_date is not None:
-            if not isinstance(to_date, datetime.date):
+            if not type(to_date) == datetime.date:
                 raise ValueError("to_date if provided must be a python datetime.date object")
 
         if reload or not self.__is_loaded['transactions']:
