@@ -1,9 +1,19 @@
+"""
+To run the test cases below make sure you have following environemnt variables set:
+
+TEST_API_KEY -- API Key for your organization
+TEST_ENTITY_ID -- any entity id which you have created before using any of our APIs / libraries before under the above organization
+
+"""
+
 import unittest
 import os
 import finbox_bankconnect as bc
 from finbox_bankconnect.custom_exceptions import EntityNotFoundError, PasswordIncorrectError
 from finbox_bankconnect.custom_exceptions import UnparsablePDFError, CannotIdentityBankError
 from finbox_bankconnect.utils import is_valid_uuid4
+
+NOT_EXISTS_ENTITY_ID = "c036e96d-ccae-443c-8f64-b98ceeaa1578"
 
 class TestUtilFunctions(unittest.TestCase):
     """
@@ -83,17 +93,49 @@ class TestGetEntityEdgeCases(unittest.TestCase):
             print(e)
         self.assertEqual(list_handled and int_handled, True, "entity_id non string case - not handled")
 
-    def test_detail_not_found(self):
+    def test_detail_not_found_identity(self):
         exception_handled = False
         try:
-            entity = bc.Entity.get(entity_id = 'c036e96d-ccae-443c-8f64-b98ceeaa1578')
-            entity.get_transactions()
-            # assuming this uuid id doesn't exists in DB :P
+            entity = bc.Entity.get(entity_id = NOT_EXISTS_ENTITY_ID)
+            entity.get_identity()
         except EntityNotFoundError:
             exception_handled = True
         except Exception as e:
             print(e)
-        self.assertEqual(exception_handled, True, "entity_id valid but not in DB case - not handled")
+        self.assertEqual(exception_handled, True, "entity_id valid but not in DB case, not handled in get_identity")
+
+    def test_detail_not_found_transactions(self):
+        exception_handled = False
+        try:
+            entity = bc.Entity.get(entity_id = NOT_EXISTS_ENTITY_ID)
+            entity.get_transactions()
+        except EntityNotFoundError:
+            exception_handled = True
+        except Exception as e:
+            print(e)
+        self.assertEqual(exception_handled, True, "entity_id valid but not in DB case, not handled in get_transactions")
+
+    def test_detail_not_found_fraud_info(self):
+        exception_handled = False
+        try:
+            entity = bc.Entity.get(entity_id = NOT_EXISTS_ENTITY_ID)
+            entity.get_fraud_info()
+        except EntityNotFoundError:
+            exception_handled = True
+        except Exception as e:
+            print(e)
+        self.assertEqual(exception_handled, True, "entity_id valid but not in DB case, not handled in get_fraud_info")
+
+    def test_detail_not_found_accounts(self):
+        exception_handled = False
+        try:
+            entity = bc.Entity.get(entity_id = NOT_EXISTS_ENTITY_ID)
+            entity.get_accounts()
+        except EntityNotFoundError:
+            exception_handled = True
+        except Exception as e:
+            print(e)
+        self.assertEqual(exception_handled, True, "entity_id valid but not in DB case, not handled in get_accounts")
 
 class TestLinkIdFlow(unittest.TestCase):
     """
@@ -121,7 +163,7 @@ class TestLinkIdFlow(unittest.TestCase):
         self.assertEqual(list_handled and int_handled, True, "link_id non string case - not handled")
 
     def test_entity_creation(self):
-        entity = bc.Entity.create(link_id = "python_link_id_test")
+        entity = bc.Entity.create(link_id = "python_link_id_test_1")
         entity_id = entity.entity_id
         self.assertEqual(is_valid_uuid4(entity_id), True, "entity_id couldn't be created against the link_id")
 
@@ -210,6 +252,46 @@ class TestUploadStatement(unittest.TestCase):
     def setUp(self):
         bc.api_key = os.environ['TEST_API_KEY']
 
+    def test_empty_file_path(self):
+        none_handled = False
+        blank_handled = False
+        entity = bc.Entity.create()
+        try:
+            entity.upload_statement(None, bank_name='axis')
+        except ValueError:
+            none_handled = True
+        except Exception as e:
+            print(e)
+        try:
+            entity.upload_statement('', bank_name='axis')
+        except ValueError:
+            blank_handled = True
+        except Exception as e:
+            print(e)
+        self.assertEqual(none_handled and blank_handled, True, "None and/or blank string file path not handled for upload")
+
+    def test_non_string_file_path(self):
+        exception_handled = False
+        entity = bc.Entity.create()
+        try:
+            entity.upload_statement(['hello.pdf'], bank_name='axis')
+        except ValueError:
+            exception_handled = True
+        except Exception as e:
+            print(e)
+        self.assertEqual(exception_handled, True, "Non string file path error not handled")
+
+    def test_non_pdf_file_path(self):
+        exception_handled = False
+        entity = bc.Entity.create()
+        try:
+            entity.upload_statement('README.md', bank_name='axis')
+        except ValueError:
+            exception_handled = True
+        except Exception as e:
+            print(e)
+        self.assertEqual(exception_handled, True, "Non pdf path error not handled")
+
     def test_password_incorrect_bank_name(self):
         exception_handled = False
         entity = bc.Entity.create()
@@ -242,6 +324,21 @@ class TestUploadStatement(unittest.TestCase):
         except Exception as e:
             print(e)
         self.assertEqual(exception_handled, True, "Cannot identify bank error not handled")
+
+    def test_success_upload_file_bank_name(self):
+        entity = bc.Entity.create()
+        is_authentic = entity.upload_statement('samples/test_statement_1.pdf', pdf_password='finbox', bank_name='axis')
+        self.assertEqual(is_authentic, False, "Statement file upload and fraud check failed")
+
+    def test_success_upload_file(self):
+        entity = bc.Entity.create()
+        is_authentic = entity.upload_statement('samples/test_statement_1.pdf', pdf_password='finbox', bank_name='axis')
+        self.assertEqual(is_authentic, False, "Bankless Statement file upload and fraud check failed")
+
+    def test_success_upload_file_link_id(self):
+        entity = bc.Entity.create(link_id='python_link_id_test_2')
+        is_authentic = entity.upload_statement('samples/test_statement_1.pdf', pdf_password='finbox', bank_name='axis')
+        self.assertEqual(is_authentic, False, "Statement file upload against link id and fraud check failed")
 
 if __name__ == '__main__':
     unittest.main()
