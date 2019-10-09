@@ -12,4 +12,4 @@ script:
 after_success:
 - coveralls
 - gem install dpl
-- dpl pypi --username __token__ --password $PYPI_TOKEN --verbose
+- dpl --provider=pypi --username=__token__ --password=$PYPI_TOKEN --verbose
