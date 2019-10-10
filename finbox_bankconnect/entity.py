@@ -289,3 +289,134 @@ class Entity:
                 raise ServiceTimeOutError
 
         return iter(self.__fraud_info)
+
+    def __fetch_recurring(self):
+
+        # internal function to update the credit and debit recurring
+
+        if not self.__is_loaded['entity_id']:
+            raise ValueError("no statement uploaded yet so use upload_statement method to set the entity_id")
+
+        timer_start = time.time()
+        while time.time() < timer_start + finbox_bankconnect.poll_timeout: # keep polling till timeout happens
+            status, accounts, fraud_info, credit_recurring, debit_recurring = connector.get_recurring(self.__entity_id)
+            if status == "failed":
+                raise ExtractionFailedError
+            elif status == "not_found":
+                raise EntityNotFoundError
+            elif status == "completed":
+                # save accounts
+                self.__accounts = accounts
+                self.__is_loaded['accounts'] = True
+                # save fraud info
+                self.__fraud_info = fraud_info
+                self.__is_loaded['fraud_info'] = True
+                # save info
+                self.__credit_recurring = credit_recurring
+                self.__is_loaded['credit_recurring'] = True
+                self.__debit_recurring = debit_recurring
+                self.__is_loaded['debit_recurring'] = True
+                break
+            time.sleep(finbox_bankconnect.poll_interval) # delay of finbox_bankconnect.poll_interval
+
+        if not self.__is_loaded['credit_recurring']:
+            # if even after polling couldn't get
+            raise ServiceTimeOutError
+
+    def get_credit_recurring(self, reload=False, account_id=None):
+        """Fetches and returns the iterator to credit recurring transactions (list of dictionary) for the given entity
+
+        arguments:
+        reload (optional) (default: False) -- do not use cached data and refetch from API
+        account_id (optional) -- get credit recurring transactions for specific account_id
+        """
+        if account_id is not None:
+            if not is_valid_uuid4(account_id):
+                raise ValueError("account_id if provided must be a valid UUID4 string")
+
+        if reload or not self.__is_loaded['credit_recurring']:
+            self.__fetch_recurring()
+
+        if account_id is not None:
+            account_id_filter = make_account_id_filter(account_id)
+            return filter(account_id_filter, self.__credit_recurring)
+
+        return iter(self.__credit_recurring)
+
+    def get_debit_recurring(self, reload=False, account_id=None):
+        """Fetches and returns the iterator to debit recurring transactions (list of dictionary) for the given entity
+
+        arguments:
+        reload (optional) (default: False) -- do not use cached data and refetch from API
+        account_id (optional) -- get debit recurring transactions for specific account_id
+        """
+        if account_id is not None:
+            if not is_valid_uuid4(account_id):
+                raise ValueError("account_id if provided must be a valid UUID4 string")
+
+        if reload or not self.__is_loaded['debit_recurring']:
+            self.__fetch_recurring()
+
+        if account_id is not None:
+            account_id_filter = make_account_id_filter(account_id)
+            return filter(account_id_filter, self.__debit_recurring)
+
+        return iter(self.__debit_recurring)
+
+    def get_salary(self, reload=False, account_id=None, from_date=None, to_date=None):
+        """Fetches and returns the iterator to salary transactions (list of dictionary) for the given entity
+
+        arguments:
+        reload (optional) (default: False) -- do not use cached data and refetch from API
+        account_id (optional) -- get salary transactions for specific account_id
+        from_date (optional) -- get salary transactions greater than or equal to from_date (must be datetime.date)
+        to_date (optional) -- get salary transactions less than or equal to to_date (must be datetime.date)
+        """
+        if not self.__is_loaded['entity_id']:
+            raise ValueError("no statement uploaded yet so use upload_statement method to set the entity_id")
+
+        if account_id is not None:
+            if not is_valid_uuid4(account_id):
+                raise ValueError("account_id if provided must be a valid UUID4 string")
+
+        if from_date is not None:
+            if not type(from_date) == datetime.date:
+                raise ValueError("from_date if provided must be a python datetime.date object")
+        if to_date is not None:
+            if not type(to_date) == datetime.date:
+                raise ValueError("to_date if provided must be a python datetime.date object")
+
+        if reload or not self.__is_loaded['salary']:
+            timer_start = time.time()
+            while time.time() < timer_start + finbox_bankconnect.poll_timeout: # keep polling till timeout happens
+                status, accounts, fraud_info, salary = connector.get_salary(self.__entity_id)
+                if status == "failed":
+                    raise ExtractionFailedError
+                elif status == "not_found":
+                    raise EntityNotFoundError
+                elif status == "completed":
+                    # save accounts
+                    self.__accounts = accounts
+                    self.__is_loaded['accounts'] = True
+                    # save fraud info
+                    self.__fraud_info = fraud_info
+                    self.__is_loaded['fraud_info'] = True
+                    # save info
+                    self.__salary = salary
+                    self.__is_loaded['salary'] = True
+                    break
+                time.sleep(finbox_bankconnect.poll_interval) # delay of finbox_bankconnect.poll_interval
+
+            if not self.__is_loaded['salary']:
+                # if even after polling couldn't get
+                raise ServiceTimeOutError
+
+        if account_id is not None:
+            account_id_filter = make_account_id_filter(account_id)
+            return filter(account_id_filter, self.__salary)
+
+        if from_date is not None or to_date is not None:
+            daterange_filter = make_daterange_filter(from_date, to_date)
+            return filter(daterange_filter, self.__salary)
+
+        return iter(self.__salary)
