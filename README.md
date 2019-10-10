@@ -24,7 +24,7 @@ import finbox_bankconnect as bc
 bc.api_key = "YOUR_API_KEY"
 
 # create an entity object
-entity = Entity.create()
+entity = bc.Entity.create()
 
 # upload a statement pdf
 entity.upload_statement('path_to_file.pdf')
