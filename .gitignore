@@ -4,6 +4,6 @@ venv
 .venv
 .env
 .coverage
-build/*
-dist/*
-finbox_bankconnect.egg-info/*
+build
+dist
+finbox_bankconnect.egg-info
