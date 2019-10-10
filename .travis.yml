@@ -18,3 +18,4 @@ deploy:
   on:
     branch: master
     python: 3.4
+    tags: true
