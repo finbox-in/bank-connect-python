@@ -10,6 +10,13 @@ install:
 script:
 - coverage run --source=finbox_bankconnect tests.py
 after_success:
-- coveralls
-- gem install dpl
-- dpl --provider=pypi --username=__token__ --password=$PYPI_TOKEN --verbose
+- if [ "$TRAVIS_PYTHON_VERSION" = "3.4" ]; then coveralls; fi
+deploy:
+  provider: pypi
+  username: __token__
+  password: $PYPI_TOKEN
+  on:
+    branch: master
+    python: 3.4
+# - gem install dpl
+# - dpl --provider=pypi --username=__token__ --password=$PYPI_TOKEN --verbose
