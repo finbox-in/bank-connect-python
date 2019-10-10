@@ -37,9 +37,6 @@ for transaction in transactions:
   print(transaction)
 ```
 
-## Documentation
-Coming soon
-
 ## Requirements
 Python 3.4+
 
