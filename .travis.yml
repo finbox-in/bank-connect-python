@@ -18,5 +18,3 @@ deploy:
   on:
     branch: master
     python: 3.4
-# - gem install dpl
-# - dpl --provider=pypi --username=__token__ --password=$PYPI_TOKEN --verbose
