@@ -7,6 +7,8 @@ TEST_ENTITY_ID -- any entity id which you have created before using any of our A
                   with link_id as above (TEST_LINK_ID)
 TEST_ACCOUNT_ID -- an account id of the above TEST_ENTITY_ID entity having some transactions
 
+Make sure the statement used for testing has atleast one salary, credit, debit transaction under the above account id
+
 """
 
 import unittest
@@ -247,6 +249,48 @@ class TestFetchTransactions(unittest.TestCase):
 
     def test_date_exists(self):
         self.assertIn("date", self.first_transaction, "balance not present in transaction")
+
+class TestFetchRecurring(unittest.TestCase):
+    """
+    Test response when using get_credit_recurring and get_debit_recurring function
+    """
+
+    def setUp(self):
+        bc.api_key = os.environ['TEST_API_KEY']
+        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        self.first_r_credit = next(entity.get_credit_recurring())
+        self.first_r_debit = next(entity.get_debit_recurring())
+
+    def test_credit_account_id_exists(self):
+        self.assertIn("account_id", self.first_r_credit, "account_id not present in credit recurring")
+
+    def test_credit_transactions(self):
+        self.assertIn("transactions", self.first_r_credit, "transactions not present in credit recurring")
+
+    def test_debit_account_id_exists(self):
+        self.assertIn("account_id", self.first_r_debit, "account_id not present in debit recurring")
+
+    def test_debit_transactions(self):
+        self.assertIn("transactions", self.first_r_debit, "transactions not present in debit recurring")
+
+class TestFetchSalary(unittest.TestCase):
+    """
+    Test response when using get_salary function
+    """
+
+    def setUp(self):
+        bc.api_key = os.environ['TEST_API_KEY']
+        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        self.first_salary = next(entity.get_salary())
+
+    def test_balance_exists(self):
+        self.assertIn("balance", self.first_salary, "balance not present in salary")
+
+    def test_transaction_type_exists(self):
+        self.assertIn("transaction_type", self.first_salary, "balance not present in salary")
+
+    def test_date_exists(self):
+        self.assertIn("date", self.first_salary, "balance not present in salary")
 
 class TestAccountEdgeCases(unittest.TestCase):
     """
