@@ -66,7 +66,7 @@ def upload_file(entity_id, file_obj, pdf_password, bank_name):
     if bank_name is None:
         api_name = 'bankless_upload'
     else:
-        data['bank'] = bank_name
+        data['bank_name'] = bank_name
     if entity_id is not None:
         data['entity_id'] = entity_id
     if pdf_password is not None:
@@ -104,10 +104,6 @@ def upload_file(entity_id, file_obj, pdf_password, bank_name):
                 elif message == "Unable to detect bank. Please provide BANK NAME.":
                     raise CannotIdentityBankError
                 else:
-                    print("----")
-                    print(data)
-                    print(response)
-                    print("")
                     raise FileProcessFailedError
         retry_left -= 1
     #TODO: log here the response

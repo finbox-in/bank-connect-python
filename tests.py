@@ -484,7 +484,7 @@ class TestUploadStatement(unittest.TestCase):
 
     def test_success_upload_file(self):
         entity = bc.Entity.create()
-        is_authentic = entity.upload_statement('samples/test_statement_1.pdf', pdf_password='finbox', bank_name='axis')
+        is_authentic = entity.upload_statement('samples/test_statement_1.pdf', pdf_password='finbox')
         self.assertEqual(is_authentic, False, "Bankless Statement file upload and fraud check failed")
 
     def test_success_upload_file_link_id(self):
