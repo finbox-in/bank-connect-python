@@ -1,5 +1,5 @@
 """
-To run the test cases below make sure you have following environemnt variables set:
+To run the test cases below make sure you have following environment variables set:
 
 TEST_API_KEY -- API Key for your organization
 TEST_LINK_ID -- any link_id string
@@ -7,7 +7,7 @@ TEST_ENTITY_ID -- any entity id which you have created before using any of our A
                   with link_id as above (TEST_LINK_ID)
 TEST_ACCOUNT_ID -- an account id of the above TEST_ENTITY_ID entity having some transactions
 
-Make sure the statement used for testing has atleast one salary, credit, debit transaction under the above account id
+Make sure the statement used for testing has at least one salary, lender, credit, debit transaction under the above account id
 
 """
 
@@ -291,6 +291,25 @@ class TestFetchSalary(unittest.TestCase):
 
     def test_date_exists(self):
         self.assertIn("date", self.first_salary, "balance not present in salary")
+
+class TestFetchLenderTransactions(unittest.TestCase):
+    """
+    Test response when using get_lender_transactions function
+    """
+
+    def setUp(self):
+        bc.api_key = os.environ['TEST_API_KEY']
+        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        self.first_lender_txn = next(entity.get_lender_transactions())
+
+    def test_balance_exists(self):
+        self.assertIn("balance", self.first_lender_txn, "balance not present in lender transaction")
+
+    def test_transaction_type_exists(self):
+        self.assertIn("transaction_type", self.first_lender_txn, "balance not present in lender transaction")
+
+    def test_date_exists(self):
+        self.assertIn("date", self.first_lender_txn, "balance not present in lender transaction")
 
 class TestAccountEdgeCases(unittest.TestCase):
     """
