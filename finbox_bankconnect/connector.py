@@ -104,6 +104,7 @@ def upload_file(entity_id, file_obj, pdf_password, bank_name):
                 elif message == "Unable to detect bank. Please provide BANK NAME.":
                     raise CannotIdentityBankError
                 else:
+                    print(response)
                     raise FileProcessFailedError
         retry_left -= 1
     #TODO: log here the response
