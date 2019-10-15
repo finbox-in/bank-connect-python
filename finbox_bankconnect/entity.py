@@ -478,4 +478,4 @@ class Entity:
             daterange_filter = make_daterange_filter(from_date, to_date)
             return filter(daterange_filter, self.__lender_transactions)
 
-        return iter(self._lender_transactions)
+        return iter(self.__lender_transactions)
