@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="finbox_bankconnect",
-    version="0.1.0",
+    version="0.1.1",
     author="FinBox",
     author_email="tech@finbox.in",
     description="Python library to use Finbox Bank Connect",

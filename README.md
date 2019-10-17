@@ -18,13 +18,13 @@ pip3 install finbox_bankconnect
 Sample code to upload a statement pdf and extract transactions from it
 
 ```python
-import finbox_bankconnect as bc
+import finbox_bankconnect as fbc
 
 # set API Key
-bc.api_key = "YOUR_API_KEY"
+fbc.api_key = "YOUR_API_KEY"
 
 # create an entity object
-entity = bc.Entity.create()
+entity = fbc.Entity.create()
 
 # upload a statement pdf
 entity.upload_statement('path_to_file.pdf')

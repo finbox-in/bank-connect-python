@@ -14,7 +14,7 @@ Make sure the statement used for testing has at least one salary, lender, credit
 import unittest
 import os
 import datetime
-import finbox_bankconnect as bc
+import finbox_bankconnect as fbc
 from finbox_bankconnect.custom_exceptions import EntityNotFoundError, PasswordIncorrectError
 from finbox_bankconnect.custom_exceptions import UnparsablePDFError, CannotIdentityBankError
 from finbox_bankconnect.utils import is_valid_uuid4
@@ -50,12 +50,12 @@ class TestGetEntityEdgeCases(unittest.TestCase):
     """
 
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
+        fbc.api_key = os.environ['TEST_API_KEY']
 
     def test_empty_entity_id(self):
         exception_handled = False
         try:
-            bc.Entity.get(entity_id = '')
+            fbc.Entity.get(entity_id = '')
         except ValueError:
             exception_handled = True
         except Exception as e:
@@ -65,7 +65,7 @@ class TestGetEntityEdgeCases(unittest.TestCase):
     def test_none_entity_id(self):
         exception_handled = False
         try:
-            bc.Entity.get(entity_id = None)
+            fbc.Entity.get(entity_id = None)
         except ValueError:
             exception_handled = True
         except Exception as e:
@@ -75,7 +75,7 @@ class TestGetEntityEdgeCases(unittest.TestCase):
     def test_invalid_entity_id(self):
         exception_handled = False
         try:
-            bc.Entity.get(entity_id = 'c036e96dccae443c8f64b98ceeaa1578')
+            fbc.Entity.get(entity_id = 'c036e96dccae443c8f64b98ceeaa1578')
         except ValueError:
             exception_handled = True
         except Exception as e:
@@ -86,13 +86,13 @@ class TestGetEntityEdgeCases(unittest.TestCase):
         list_handled = False
         int_handled = False
         try:
-            bc.Entity.get(entity_id = ["hello"])
+            fbc.Entity.get(entity_id = ["hello"])
         except ValueError:
             list_handled = True
         except Exception as e:
             print(e)
         try:
-            bc.Entity.get(entity_id = 123)
+            fbc.Entity.get(entity_id = 123)
         except ValueError:
             int_handled = True
         except Exception as e:
@@ -102,7 +102,7 @@ class TestGetEntityEdgeCases(unittest.TestCase):
     def test_detail_not_found_identity(self):
         exception_handled = False
         try:
-            entity = bc.Entity.get(entity_id = NOT_EXISTS_ENTITY_ID)
+            entity = fbc.Entity.get(entity_id = NOT_EXISTS_ENTITY_ID)
             entity.get_identity()
         except EntityNotFoundError:
             exception_handled = True
@@ -113,7 +113,7 @@ class TestGetEntityEdgeCases(unittest.TestCase):
     def test_detail_not_found_transactions(self):
         exception_handled = False
         try:
-            entity = bc.Entity.get(entity_id = NOT_EXISTS_ENTITY_ID)
+            entity = fbc.Entity.get(entity_id = NOT_EXISTS_ENTITY_ID)
             entity.get_transactions()
         except EntityNotFoundError:
             exception_handled = True
@@ -124,7 +124,7 @@ class TestGetEntityEdgeCases(unittest.TestCase):
     def test_detail_not_found_fraud_info(self):
         exception_handled = False
         try:
-            entity = bc.Entity.get(entity_id = NOT_EXISTS_ENTITY_ID)
+            entity = fbc.Entity.get(entity_id = NOT_EXISTS_ENTITY_ID)
             entity.get_fraud_info()
         except EntityNotFoundError:
             exception_handled = True
@@ -135,7 +135,7 @@ class TestGetEntityEdgeCases(unittest.TestCase):
     def test_detail_not_found_accounts(self):
         exception_handled = False
         try:
-            entity = bc.Entity.get(entity_id = NOT_EXISTS_ENTITY_ID)
+            entity = fbc.Entity.get(entity_id = NOT_EXISTS_ENTITY_ID)
             entity.get_accounts()
         except EntityNotFoundError:
             exception_handled = True
@@ -149,19 +149,19 @@ class TestLinkIdFlow(unittest.TestCase):
     """
 
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
+        fbc.api_key = os.environ['TEST_API_KEY']
 
     def test_non_string_link_id(self):
         list_handled = False
         int_handled = False
         try:
-            bc.Entity.create(link_id = ["hello"])
+            fbc.Entity.create(link_id = ["hello"])
         except ValueError:
             list_handled = True
         except Exception as e:
             print(e)
         try:
-            bc.Entity.create(link_id = 123)
+            fbc.Entity.create(link_id = 123)
         except ValueError:
             int_handled = True
         except Exception as e:
@@ -169,12 +169,12 @@ class TestLinkIdFlow(unittest.TestCase):
         self.assertEqual(list_handled and int_handled, True, "link_id non string case - not handled")
 
     def test_entity_creation(self):
-        entity = bc.Entity.create(link_id = "python_link_id_test_1")
+        entity = fbc.Entity.create(link_id = "python_link_id_test_1")
         entity_id = entity.entity_id
         self.assertEqual(is_valid_uuid4(entity_id), True, "entity_id couldn't be created against the link_id")
 
     def test_link_id_fetch(self):
-        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        entity = fbc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
         self.assertEqual(entity.link_id, os.environ['TEST_LINK_ID'], "link_id was incorrectly fetched")
 
 class TestIdentity(unittest.TestCase):
@@ -182,8 +182,8 @@ class TestIdentity(unittest.TestCase):
     Test identity when using get_accounts function
     """
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
-        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        fbc.api_key = os.environ['TEST_API_KEY']
+        entity = fbc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
         self.identity = entity.get_identity()
 
     def test_name(self):
@@ -203,8 +203,8 @@ class TestAccounts(unittest.TestCase):
     Test accounts when using get_accounts function
     """
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
-        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        fbc.api_key = os.environ['TEST_API_KEY']
+        entity = fbc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
         self.first_account = next(entity.get_accounts())
 
     def test_months(self):
@@ -221,8 +221,8 @@ class TestFraudInfo(unittest.TestCase):
     Test fraud info when using get_accounts function
     """
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
-        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        fbc.api_key = os.environ['TEST_API_KEY']
+        entity = fbc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
         self.first_fraud = next(entity.get_fraud_info())
 
     def test_fraud_type(self):
@@ -237,8 +237,8 @@ class TestFetchTransactions(unittest.TestCase):
     """
 
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
-        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        fbc.api_key = os.environ['TEST_API_KEY']
+        entity = fbc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
         self.first_transaction = next(entity.get_transactions())
 
     def test_balance_exists(self):
@@ -256,8 +256,8 @@ class TestFetchRecurring(unittest.TestCase):
     """
 
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
-        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        fbc.api_key = os.environ['TEST_API_KEY']
+        entity = fbc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
         self.first_r_credit = next(entity.get_credit_recurring())
         self.first_r_debit = next(entity.get_debit_recurring())
 
@@ -279,8 +279,8 @@ class TestFetchSalary(unittest.TestCase):
     """
 
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
-        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        fbc.api_key = os.environ['TEST_API_KEY']
+        entity = fbc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
         self.first_salary = next(entity.get_salary())
 
     def test_balance_exists(self):
@@ -298,8 +298,8 @@ class TestFetchLenderTransactions(unittest.TestCase):
     """
 
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
-        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        fbc.api_key = os.environ['TEST_API_KEY']
+        entity = fbc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
         self.first_lender_txn = next(entity.get_lender_transactions())
 
     def test_balance_exists(self):
@@ -317,8 +317,8 @@ class TestAccountEdgeCases(unittest.TestCase):
     """
 
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
-        self.entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        fbc.api_key = os.environ['TEST_API_KEY']
+        self.entity = fbc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
 
     def test_invalid_account_id(self):
         array_handled = False
@@ -340,8 +340,8 @@ class TestAccountFilteredTransactions(unittest.TestCase):
     """
 
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
-        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        fbc.api_key = os.environ['TEST_API_KEY']
+        entity = fbc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
         self.first_transaction = next(entity.get_transactions(account_id = os.environ['TEST_ACCOUNT_ID']))
 
     def test_balance_exists(self):
@@ -359,8 +359,8 @@ class TestDateRangeEdgeCases(unittest.TestCase):
     """
 
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
-        self.entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        fbc.api_key = os.environ['TEST_API_KEY']
+        self.entity = fbc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
 
     def test_invalid_daterange(self):
         string_handled = False
@@ -382,8 +382,8 @@ class TestDateRangeFilteredTransactions(unittest.TestCase):
     """
 
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
-        entity = bc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
+        fbc.api_key = os.environ['TEST_API_KEY']
+        entity = fbc.Entity.get(entity_id=os.environ['TEST_ENTITY_ID'])
         from_date = (datetime.datetime.today() - datetime.timedelta(days=1000)).date()
         self.first_transaction = next(entity.get_transactions(from_date=from_date, to_date=datetime.datetime.today().date()))
 
@@ -402,12 +402,12 @@ class TestUploadStatement(unittest.TestCase):
     """
 
     def setUp(self):
-        bc.api_key = os.environ['TEST_API_KEY']
+        fbc.api_key = os.environ['TEST_API_KEY']
 
     def test_empty_file_path(self):
         none_handled = False
         blank_handled = False
-        entity = bc.Entity.create()
+        entity = fbc.Entity.create()
         try:
             entity.upload_statement(None, bank_name='axis')
         except ValueError:
@@ -424,7 +424,7 @@ class TestUploadStatement(unittest.TestCase):
 
     def test_non_string_file_path(self):
         exception_handled = False
-        entity = bc.Entity.create()
+        entity = fbc.Entity.create()
         try:
             entity.upload_statement(['hello.pdf'], bank_name='axis')
         except ValueError:
@@ -435,7 +435,7 @@ class TestUploadStatement(unittest.TestCase):
 
     def test_non_pdf_file_path(self):
         exception_handled = False
-        entity = bc.Entity.create()
+        entity = fbc.Entity.create()
         try:
             entity.upload_statement('README.md', bank_name='axis')
         except ValueError:
@@ -446,7 +446,7 @@ class TestUploadStatement(unittest.TestCase):
 
     def test_password_incorrect_bank_name(self):
         exception_handled = False
-        entity = bc.Entity.create()
+        entity = fbc.Entity.create()
         try:
             entity.upload_statement('samples/test_statement_2.pdf', pdf_password='wrongpass', bank_name='axis')
         except PasswordIncorrectError:
@@ -457,7 +457,7 @@ class TestUploadStatement(unittest.TestCase):
 
     def test_unparsable_pdf_bank_name(self):
         exception_handled = False
-        entity = bc.Entity.create()
+        entity = fbc.Entity.create()
         try:
             entity.upload_statement('samples/test_statement_2.pdf', pdf_password='finbox', bank_name='axis')
         except UnparsablePDFError:
@@ -468,7 +468,7 @@ class TestUploadStatement(unittest.TestCase):
 
     def test_cannot_identify_bank(self):
         exception_handled = False
-        entity = bc.Entity.create()
+        entity = fbc.Entity.create()
         try:
             entity.upload_statement('samples/test_statement_2.pdf', pdf_password='finbox')
         except CannotIdentityBankError:
@@ -478,17 +478,17 @@ class TestUploadStatement(unittest.TestCase):
         self.assertEqual(exception_handled, True, "Cannot identify bank error not handled")
 
     def test_success_upload_file_bank_name(self):
-        entity = bc.Entity.create()
+        entity = fbc.Entity.create()
         is_authentic = entity.upload_statement('samples/test_statement_1.pdf', pdf_password='finbox', bank_name='axis')
         self.assertEqual(is_authentic, False, "Statement file upload and fraud check failed")
 
     def test_success_upload_file(self):
-        entity = bc.Entity.create()
+        entity = fbc.Entity.create()
         is_authentic = entity.upload_statement('samples/test_statement_1.pdf', pdf_password='finbox')
         self.assertEqual(is_authentic, False, "Bankless Statement file upload and fraud check failed")
 
     def test_success_upload_file_link_id(self):
-        entity = bc.Entity.create(link_id='python_link_id_test_2')
+        entity = fbc.Entity.create(link_id='python_link_id_test_2')
         is_authentic = entity.upload_statement('samples/test_statement_1.pdf', pdf_password='finbox', bank_name='axis')
         self.assertEqual(is_authentic, False, "Statement file upload against link id and fraud check failed")
 
